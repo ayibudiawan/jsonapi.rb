@@ -86,9 +86,9 @@ module JSONAPI
 
         # If it's an empty collection, return it directly.
         many = JSONAPI::Rails.is_collection?(resource, options[:is_collection])
-        if many && !resource.any?
-          return options.slice(:meta, :links).merge(data: []).to_json
-        end
+        # if many && !resource.any?
+        #   return options.slice(:meta, :links).merge(data: []).to_json
+        # end
 
         JSONAPI_METHODS_MAPPING.to_a[2..-1].each do |opt, method_name|
           options[opt] ||= send(method_name) if respond_to?(method_name, true)
@@ -122,8 +122,13 @@ module JSONAPI
     # @return [Class]
     def self.serializer_class(resource, is_collection)
       klass = resource.class
-      klass = resource.first.class if is_collection
-
+      if is_collection
+        if resource.class.eql?(Array)
+          klass = resource.first.class
+        else
+          klass = resource.klass
+        end
+      end
       "#{klass.name}Serializer".constantize
     end
   end
